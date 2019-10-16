@@ -44,6 +44,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
     public function getCredentials(Request $request)
     {
+        
         $credentials = [
             'email' => $request->request->get('email'),
             'password' => $request->request->get('password'),
@@ -53,7 +54,6 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
             Security::LAST_USERNAME,
             $credentials['email']
         );
-
         return $credentials;
     }
 
@@ -86,7 +86,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         }
 
         // For example : return new RedirectResponse($this->urlGenerator->generate('some_route'));
-        return new RedirectResponse($this->urlGenerator->generate('app_homepage'));
+        return new RedirectResponse($this->urlGenerator->generate('app_home'));
     }
 
     protected function getLoginUrl()
