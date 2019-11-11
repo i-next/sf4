@@ -7,9 +7,6 @@
             </li>
             {% if app.user.username is defined %}
                 <li class="nav-item">
-                  <a class="nav-link" href="{{ path('app_page_test') }}">Page Test</a>
-                </li>
-                <li class="nav-item">
                   <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
                 </li>
             {% else %}
