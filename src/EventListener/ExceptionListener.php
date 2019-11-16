@@ -40,10 +40,10 @@ class ExceptionListener
         } else {
             $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        $redirect = new RedirectResponse($this->router->generate('app_error', array('message' => $message)));
+        //$redirect = new RedirectResponse($this->router->generate('app_error', array('message' => $message)));
        // dump($response);die();
         // sends the modified response object to the event
         
-        $event->setResponse($redirect);
+        //$event->setResponse($redirect);
     }
 }
