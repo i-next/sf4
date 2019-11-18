@@ -4,7 +4,6 @@ monolog:
             type: rotating_file
             action_level: error
             handler: nested
-            excluded_http_codes: [404, 405]
             max_files: 10
         nested:
             type: stream
