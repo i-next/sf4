@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,6 +13,7 @@ use Psr\Log\LoggerInterface;
 
 use App\Entity\User;
 use App\Form\UserType;
+use App\Service\EmailService;
 
 class SecurityController extends AbstractController
 {
@@ -58,7 +58,7 @@ class SecurityController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger): Response
+    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, \Swift_Mailer $mailer, EmailService $emailService): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -80,6 +80,9 @@ class SecurityController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
+                
+                $emailService->userConfirmation('eeuchin@i-next.fr');
+                
                 return $this->redirectToRoute('app_home');
             
         }
