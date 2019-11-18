@@ -4,11 +4,13 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Psr\Log\LoggerInterface;
 
 use App\Entity\User;
 use App\Form\UserType;
@@ -28,6 +30,7 @@ class SecurityController extends AbstractController
         $error = $authenticationUtils->getLastAuthenticationError();
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
+        
         
         return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
     }
@@ -55,7 +58,7 @@ class SecurityController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -68,15 +71,16 @@ class SecurityController extends AbstractController
                 $user->repassword = $request->request->get('user')['repassword'];
                 $user->setRoles(array('ROLE_USER'));
                 $user->setPassword(
-                $passwordEncoder->encodePassword(
-                    $user,
-                    $form->get('password')->getData()
-                )
-            );
+                    $passwordEncoder->encodePassword(
+                        $user,
+                        $form->get('password')->getData()
+                        )
+                );
+                $logger->info("New user:".$form->get('email')->getData());
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
-                
+                return $this->redirectToRoute('app_home');
             
         }
         return $this->render('registration/register.html.twig',[
