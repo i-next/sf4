@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Controller;
@@ -15,6 +14,9 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\GenericEvent;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Psr\Log\LoggerInterface;
 
 
@@ -57,12 +59,12 @@ class SecurityController extends AbstractController
 }
     
     /**
-     * @Route("/signin", name="app_signin")
+     * @Route("/signin", name="app_signup")
      * @param Request $request
      * @return Response
      */
 
-    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, \Swift_Mailer $mailer, EmailService $emailService): Response
+    public function signup(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, \Swift_Mailer $mailer, EmailService $emailService): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -91,7 +93,7 @@ class SecurityController extends AbstractController
                 $event = new GenericEvent($user);
                 $eventDispatcher->dispatch( $event, Events::USER_REGISTERED);
                 
-                return $this->redirectToRoute('app_home');
+                return $this->redirectToRoute('app_login');
             
         }
         return $this->render('registration/register.html.twig',[

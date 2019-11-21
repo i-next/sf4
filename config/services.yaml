@@ -6,6 +6,7 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     
+    app.notifications.email_sender: 'no-reply@i-next.fr'
     app.email_sender: 'no-reply@i-next.fr'
 
 services:
