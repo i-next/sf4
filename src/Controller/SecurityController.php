@@ -1,6 +1,11 @@
+
 <?php
 
 namespace App\Controller;
+
+use App\Entity\User;
+use App\Form\UserType;
+use App\Events;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,8 +17,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Psr\Log\LoggerInterface;
 
-use App\Entity\User;
-use App\Form\UserType;
 
 class SecurityController extends AbstractController
 {
@@ -58,7 +61,7 @@ class SecurityController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger): Response
+    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -77,9 +80,14 @@ class SecurityController extends AbstractController
                         )
                 );
                 $logger->info("New user:".$form->get('email')->getData());
+                
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
+                
+                $event = new GenericEvent($user);
+                $eventDispatcher->dispatch( $event, Events::USER_REGISTERED);
+                
                 return $this->redirectToRoute('app_home');
             
         }
