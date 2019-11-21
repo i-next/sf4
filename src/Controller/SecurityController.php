@@ -6,10 +6,10 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Events;
+use App\Service\EmailService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,7 +61,8 @@ class SecurityController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher): Response
+
+    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, \Swift_Mailer $mailer, EmailService $emailService): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -85,6 +86,8 @@ class SecurityController extends AbstractController
                 $entityManager->persist($user);
                 $entityManager->flush();
                 
+
+                $emailService->userConfirmation($form->get('email')->getData());
                 $event = new GenericEvent($user);
                 $eventDispatcher->dispatch( $event, Events::USER_REGISTERED);
                 
