@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Controller;
@@ -8,13 +9,14 @@ use App\Events;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use Psr\Log\LoggerInterface;
+
 
 class SecurityController extends AbstractController
 {
@@ -31,6 +33,7 @@ class SecurityController extends AbstractController
         $error = $authenticationUtils->getLastAuthenticationError();
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
+        
         
         return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
     }
@@ -54,11 +57,11 @@ class SecurityController extends AbstractController
 }
     
     /**
-     * @Route("/signup", name="app_signup")
+     * @Route("/signin", name="app_signin")
      * @param Request $request
      * @return Response
      */
-    public function signup(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, EventDispatcherInterface $eventDispatcher): Response
+    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -71,11 +74,13 @@ class SecurityController extends AbstractController
                 $user->repassword = $request->request->get('user')['repassword'];
                 $user->setRoles(array('ROLE_USER'));
                 $user->setPassword(
-                $passwordEncoder->encodePassword(
-                    $user,
-                    $form->get('password')->getData()
-                )
-            );
+                    $passwordEncoder->encodePassword(
+                        $user,
+                        $form->get('password')->getData()
+                        )
+                );
+                $logger->info("New user:".$form->get('email')->getData());
+                
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
@@ -83,7 +88,7 @@ class SecurityController extends AbstractController
                 $event = new GenericEvent($user);
                 $eventDispatcher->dispatch( $event, Events::USER_REGISTERED);
                 
-                 return $this->redirectToRoute('security_login');
+                return $this->redirectToRoute('app_home');
             
         }
         return $this->render('registration/register.html.twig',[
