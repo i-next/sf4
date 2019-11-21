@@ -19,6 +19,7 @@ class MainController extends AbstractController
      */
     public function mainPage(): Response
     {
+        
          return $this->render('main/home.html.twig', [
             
             ]);

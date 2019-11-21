@@ -1,6 +1,12 @@
+
 <?php
 
 namespace App\Controller;
+
+use App\Entity\User;
+use App\Form\UserType;
+use App\Events;
+use App\Service\EmailService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,9 +17,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Psr\Log\LoggerInterface;
 
-use App\Entity\User;
-use App\Form\UserType;
-use App\Service\EmailService;
 
 class SecurityController extends AbstractController
 {
@@ -58,7 +61,8 @@ class SecurityController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, \Swift_Mailer $mailer, EmailService $emailService): Response
+
+    public function signin(Request $request,ValidatorInterface $validator, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, \Swift_Mailer $mailer, EmailService $emailService): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -77,11 +81,15 @@ class SecurityController extends AbstractController
                         )
                 );
                 $logger->info("New user:".$form->get('email')->getData());
+                
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
                 
-                $emailService->userConfirmation('eeuchin@i-next.fr');
+
+                $emailService->userConfirmation($form->get('email')->getData());
+                $event = new GenericEvent($user);
+                $eventDispatcher->dispatch( $event, Events::USER_REGISTERED);
                 
                 return $this->redirectToRoute('app_home');
             
