@@ -59,7 +59,7 @@ class SecurityController extends AbstractController
 }
     
     /**
-     * @Route("/signin", name="app_signup")
+     * @Route("/signup", name="app_signup")
      * @param Request $request
      * @return Response
      */
